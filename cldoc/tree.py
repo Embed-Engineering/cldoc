@@ -26,7 +26,12 @@ from . import example
 from . import utf8
 from . import log
 
-import os, sys, sets, re, glob, platform
+import os
+import sys
+import sets
+import re
+import glob
+import platform
 
 from ctypes.util import find_library
 
@@ -50,7 +55,7 @@ if platform.system() == 'Darwin':
         if not lname is None:
             cindex.Config.set_library_file(lname)
 else:
-    versions = [None, '3.5', '3.4', '3.3', '3.2']
+    versions = [None, '3.8', '3.5', '3.4', '3.3', '3.2']
 
     for v in versions:
         name = 'clang'
@@ -69,13 +74,17 @@ testconf = cindex.Config()
 try:
     testconf.get_cindex_library()
 except cindex.LibclangError as e:
-    sys.stderr.write("\nFatal: Failed to locate libclang library. cldoc depends on libclang for parsing sources, please make sure you have libclang installed.\n" + str(e) + "\n\n")
+    sys.stderr.write(
+        "\nFatal: Failed to locate libclang library. cldoc depends on libclang for parsing sources, please make sure you have libclang installed.\n" + str(e) + "\n\n")
     sys.exit(1)
 
+
 class Tree(documentmerger.DocumentMerger):
+
     def __init__(self, files, flags):
         self.processed = {}
-        self.files, ok = self.expand_sources([os.path.realpath(f) for f in files])
+        self.files, ok = self.expand_sources(
+            [os.path.realpath(f) for f in files])
 
         if not ok:
             sys.exit(1)
@@ -125,14 +134,16 @@ class Tree(documentmerger.DocumentMerger):
                 continue
 
             if os.path.isdir(source):
-                retdir, okdir = self.expand_sources([os.path.join(source, x) for x in os.listdir(source)], self.filter_source)
+                retdir, okdir = self.expand_sources(
+                    [os.path.join(source, x) for x in os.listdir(source)], self.filter_source)
 
                 if not okdir:
                     ok = False
 
                 ret += retdir
             elif not os.path.exists(source):
-                sys.stderr.write("The specified source `" + source + "` could not be found\n")
+                sys.stderr.write("The specified source `" +
+                                 source + "` could not be found\n")
                 ok = False
             else:
                 ret.append(source)
@@ -183,7 +194,8 @@ class Tree(documentmerger.DocumentMerger):
                         fatal = True
 
                 if fatal:
-                    sys.stderr.write("\nCould not generate documentation due to parser errors\n")
+                    sys.stderr.write(
+                        "\nCould not generate documentation due to parser errors\n")
                     sys.exit(1)
 
             if not tu:
@@ -229,7 +241,8 @@ class Tree(documentmerger.DocumentMerger):
                     db = self.commentsdbs[location.file.name]
 
                     if db:
-                        par = self.category_to_node[db.lookup_category(location)]
+                        par = self.category_to_node[
+                            db.lookup_category(location)]
 
                 if par is None:
                     par = self.root
@@ -281,7 +294,8 @@ class Tree(documentmerger.DocumentMerger):
                 tmpfile.close()
 
                 tu = index.parse(filename, self.flags, options=1)
-                tokens = tu.get_tokens(extent=tu.get_extent(filename, (0, os.stat(filename).st_size)))
+                tokens = tu.get_tokens(extent=tu.get_extent(
+                    filename, (0, os.stat(filename).st_size)))
                 os.unlink(filename)
 
                 hl = []
@@ -304,9 +318,10 @@ class Tree(documentmerger.DocumentMerger):
                     elif cursor.kind == cindex.CursorKind.INCLUSION_DIRECTIVE and incstart is None:
                         incstart = cursor
                     elif (not incstart is None) and \
-                         token.kind == cindex.TokenKind.PUNCTUATION and \
-                         token.spelling == '>':
-                        hl.append((incstart.extent.start.offset, end, 'preprocessor'))
+                            token.kind == cindex.TokenKind.PUNCTUATION and \
+                            token.spelling == '>':
+                        hl.append(
+                            (incstart.extent.start.offset, end, 'preprocessor'))
                         incstart = None
 
                 ex = example.Example()
@@ -528,7 +543,8 @@ class Tree(documentmerger.DocumentMerger):
                         for node in ret:
                             self.register_node(node, par)
 
-                ignoretop = [cindex.CursorKind.TYPE_REF, cindex.CursorKind.PARM_DECL]
+                ignoretop = [cindex.CursorKind.TYPE_REF,
+                             cindex.CursorKind.PARM_DECL]
 
                 if (not par or ret is None) and not item.kind in ignoretop:
                     log.warning("Unhandled cursor: %s", item.kind)
